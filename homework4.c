@@ -14,25 +14,13 @@ int main(void)
     initBoard();
     // TODO: Declare a UART config struct as defined in uart.h.
     //       To begin, configure the UART for 9600 baud, 8-bit payload (LSB first), no parity, 1 stop bit.
-    typedef struct _eUSCI_eUSCI_UART_ConfigV1
-    {
-        uint_fast8_t selectClockSource;
-        uint_fast16_t clockPrescalar;
-        uint_fast8_t firstModReg;
-        uint_fast8_t secondModReg;
-        uint_fast8_t parity;
-        uint_fast16_t msborLsbFirst;
-        uint_fast16_t numberofStopBits;
-        uint_fast16_t uartMode;
-        uint_fast8_t overSampling;
-        uint_fast16_t dataLength;
-    } eUSCI_UART_ConfigV1;
-    const eUSCI_UART_ConfigV1 uartconfig =
+
+    eUSCI_UART_ConfigV1 uartconfig =
     {
              EUSCI_A_UART_CLOCKSOURCE_SMCLK,              // Onboard clock
-             19,
-             8,
-             0x55,
+             65,                                          // 10MHz/ 9600 = 1041, 1041mod16 = 1
+             1,
+             0xD6,
              EUSCI_A_UART_NO_PARITY,                       // No Parity
              EUSCI_A_UART_LSB_FIRST,                       // LSB First
              EUSCI_A_UART_ONE_STOP_BIT,                    // One stop bit
@@ -59,9 +47,13 @@ int main(void)
         // TODO: Check the receive interrupt flag to see if a received character is available.
         //       Return 0xFF if no character is available.
         if(UART_getInterruptStatus(EUSCI_A0_BASE, EUSCI_A_UART_RECEIVE_INTERRUPT_FLAG) == EUSCI_A_UART_RECEIVE_INTERRUPT_FLAG)
-            rChar = UART_receiveData(EUSCI_A0_BASE);
+        {
+           rChar = UART_receiveData(EUSCI_A0_BASE);
+        }
         else
+        {
             rChar = 0xFF;
+        }
         // TODO: If an actual character was received, echo the character to the terminal AND use it to update the FSM.
         //       Check the transmit interrupt flag prior to transmitting the character.
 
@@ -73,7 +65,11 @@ int main(void)
         // TODO: If the FSM indicates a successful string entry, transmit the response string.
         //       Check the transmit interrupt flag prior to transmitting each character and moving on to the next one.
         //       Make sure to reset the success variable after transmission.
-
+        if(finished == 1)
+        {
+            UART_transmitData(EUSCI_A0_BASE, rChar);
+            finished = 0;
+        }
 
     }
 }

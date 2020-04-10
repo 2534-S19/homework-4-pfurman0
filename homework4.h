@@ -1,8 +1,8 @@
 /*
  * homework4.h
  *
- *  Created on:
- *      Author:
+ *  Created on: 4/7/2020
+ *      Author: Paul Furman
  */
 
 #ifndef HOMEWORK4_H_
