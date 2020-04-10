@@ -8,8 +8,8 @@ int main(void)
     char *response = "\n\n\r2534 is the best course in the curriculum!\r\n\n";
 
     // TODO: Declare the variables that main uses to interact with your state machine.
-
     bool finished = false;
+
     // Stops the Watchdog timer.
     initBoard();
     // TODO: Declare a UART config struct as defined in uart.h.
@@ -32,8 +32,8 @@ int main(void)
 
 
     // TODO: Make sure Tx AND Rx pins of EUSCI_A0 work for UART and not as regular GPIO pins.
-    GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P3, GPIO_PIN2, GPIO_PRIMARY_MODULE_FUNCTION);
-    GPIO_setAsPeripheralModuleFunctionOutputPin(GPIO_PORT_P3, GPIO_PIN3, GPIO_PRIMARY_MODULE_FUNCTION);
+    GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P1, GPIO_PIN2, GPIO_PRIMARY_MODULE_FUNCTION);
+    GPIO_setAsPeripheralModuleFunctionOutputPin(GPIO_PORT_P1, GPIO_PIN3, GPIO_PRIMARY_MODULE_FUNCTION);
 
     // TODO: Initialize EUSCI_A0
 
@@ -60,6 +60,10 @@ int main(void)
         if(rChar != 0xFF)
         {
             charFSM(rChar);
+            if(UART_getInterruptStatus(EUSCI_A0_BASE, EUSCI_A_UART_TRANSMIT_INTERRUPT_FLAG) != EUSCI_A_UART_TRANSMIT_INTERRUPT_FLAG)
+            {
+                UART_transmitData(EUSCI_A0_BASE, rChar);
+            }
         }
 
         // TODO: If the FSM indicates a successful string entry, transmit the response string.
@@ -82,8 +86,34 @@ void initBoard()
 // TODO: FSM for detecting character sequence.
 bool charFSM(char rChar)
 {
+    typedef enum
+    {SX, S1, S2, S3} hw4;
+    char test;
     bool finished = false;
-
+    static hw4 currentstate = SX;
+    switch(currentstate)
+    {
+    case SX:
+        if(finished == 0)
+        {
+          test=rChar;
+          currentstate=S1;
+          break;
+        }
+    case S1:
+        if(finished == 0)
+        {
+          currentstate=S2;
+          break;
+        }
+    case S2:
+        if(finished == 0)
+        {
+          currentstate=S3;
+          finished = 1;
+          break;
+        }
+    }
 
     return finished;
 }
